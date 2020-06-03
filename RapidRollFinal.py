@@ -5,181 +5,181 @@ from Tkinter import *
 import random
 import time
 
-# dimensoes do canvas
-LARGURA_CANVAS = 400
-ALTURA_CANVAS = 600
-# raio da bola em pixels
-RAIO_BOLA = 10
-# dimensoes dos tijolos
-LARGURA_TIJOLO = 60
-ALTURA_TIJOLO = 5
+# canvas dimensions
+CANVAS_WIDTH = 400
+CANVAS_HEIGHT = 600
+# Ball radius in pixels
+BALL_RADIUS = 10
+# BRICKs dimensions
+WIDTH_BRICK = 60
+HEIGHT_BRICK = 5
 
-#dimensoes do coracao
-LARG_CORACAO=10
-ALT_CORACAO=10
-# número de tentativas
-TENTATIVAS = 3
-PONTOS=0
-#intervalo de animação
+#HEART dimensions
+WIDTH_HEART=10
+HEIGHT_HEART=10
+# LIFES
+LIFES = 3
+POINTS=0
+# delay
 DELAY = 0.005
-#componentes da velocidade da bola:
+#speed components, vertical
 vy = 3
-#componentes da velocidade dos tijolos:
+#speed components, BRICKs:
 vt=-3
-x1=LARGURA_CANVAS/2 - RAIO_BOLA
+x1=CANVAS_WIDTH/2 - BALL_RADIUS
 y1=0
 
-TIJOLOS=0
-ARMADILHA=None
+BRICKS=0
+TRAP=None
 
-TIJOLO4=None
-objColidido=None
-CORACAO=None
-tocouCORACAO= 'C:\Windows\Media\Savanna\Windows Default.wav'
-tocouTIJOLO='C:\Windows\Media\Windows User Account Control.wav' 
-BOLAfora= "C:\Windows\Media\Speech Sleep.wav"
-perdeuJogo= "C:\Windows\Media\Raga\Windows Critical Stop.wav"
-ganhouJogo= "C:\Windows\Media\tada.wav"
-tocouARMADILHA="C:\Windows\Media\Raga\Windows Hardware Remove.wav"
+BRICK4=None
+OBJCOLLISION=None
+HEART=None
+touchHEART= 'C:\Windows\Media\Savanna\Windows Default.wav'
+touchBRICK='C:\Windows\Media\Windows User Account Control.wav' 
+BALLout= "C:\Windows\Media\Speech Sleep.wav"
+lostGame= "C:\Windows\Media\Raga\Windows Critical Stop.wav"
+wonGame= "C:\Windows\Media\tada.wav"
+touchTRAP="C:\Windows\Media\Raga\Windows Hardware Remove.wav"
 
 def setup():
-    global BOLA,TEXTO1,TEXTO2,TEXTO3
-    #Criar a bola:
-    BOLA= canvas.create_oval(x1,y1,
-                       LARGURA_CANVAS/2+RAIO_BOLA, 2*RAIO_BOLA, fill='red')
-    #Texto que instrui o jogador a iniciar o jogo:
-    TEXTO1= canvas.create_text(LARGURA_CANVAS/2 , ALTURA_CANVAS/2 +2*RAIO_BOLA+ 20,
+    global BALL,TEXT1,TEXT2,TEXT3
+    #Creates ball:
+    BALL= canvas.create_oval(x1,y1,
+                       CANVAS_WIDTH/2+BALL_RADIUS, 2*BALL_RADIUS, fill='red')
+    #instructions:
+    TEXT1= canvas.create_text(CANVAS_WIDTH/2 , CANVAS_HEIGHT/2 +2*BALL_RADIUS+ 20,
                                        font=('Times New Roman', 36),
-                                       text = 'Clique para começar')
+                                       text = 'Clique para comeÃ§ar')
 
-     #mostra ao jogador a quantidade restante de tentativas:
-    TEXTO2= canvas.create_text( 10, 10,text=  'TENTATIVAS: ' + str(TENTATIVAS), anchor=NW, font=('Times New Roman', 14),fill='blue')
+     #remaining lifes:
+    TEXT2= canvas.create_text( 10, 10,text=  'LIFES: ' + str(LIFES), anchor=NW, font=('Times New Roman', 14),fill='blue')
 
-     #mostra ao jogador a quantidade de PONTOS:
-    TEXTO3 = canvas.create_text( LARGURA_CANVAS-10,10,
-                             text = 'PONTOS: %5d ' % (PONTOS),
+     #points score:
+    TEXT3 = canvas.create_text( CANVAS_WIDTH-10,10,
+                             text = 'POINTS: %5d ' % (POINTS),
                              anchor=NE, font=('Times New Roman', 14),fill='maroon')
 
 
-def getX(objeto):
-    [x0, y0, x1, y1] = canvas.coords(objeto)
+def getX(object):
+    [x0, y0, x1, y1] = canvas.coords(object)
     return x1
 
-def getY(objeto):
-    [x0, y0, x1, y1] = canvas.coords(objeto)
+def getY(object):
+    [x0, y0, x1, y1] = canvas.coords(object)
     return y1
 
-def IniciouRodada():
-    global BOLA, TENTATIVAS,vy,coracao
-    while 0<getY(BOLA)<ALTURA_CANVAS+2*RAIO_BOLA:
-        coracao=0
-        moveBOLA()
-        verificaObjColidido()
-        administraCenario()
-        moveTIJOLOS()
-        if ColidiuArmadilha(): break
+def beginsTurn():
+    global BALL, LIFES,vy,HEART
+    while 0<getY(BALL)<CANVAS_HEIGHT+2*BALL_RADIUS:
+        HEART=0
+        moveBALL()
+        verifiesOBJCOLLISION()
+        managesLandscape()
+        moveBRICKS()
+        if CollisionTRAP(): break
             
-        if PONTOS>=1000:
+        if POINTS>=1000:
             gameWon()
             return
 
-    TENTATIVAS-=1
-    canvas.itemconfig(TEXTO2, text = 'TENTATIVAS: ' + str(TENTATIVAS))
-    tocaSom(BOLAfora)
+    LIFES-=1
+    canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
+    playsSound(BALLout)
 
     
-    if TENTATIVAS!=0:
-        canvas.delete(BOLA)
-        BOLA= canvas.create_oval(LARGURA_CANVAS/2 - RAIO_BOLA,0,
-                   LARGURA_CANVAS/2+RAIO_BOLA,2*RAIO_BOLA , fill='red')
+    if LIFES!=0:
+        canvas.delete(BALL)
+        BALL= canvas.create_oval(CANVAS_WIDTH/2 - BALL_RADIUS,0,
+                   CANVAS_WIDTH/2+BALL_RADIUS,2*BALL_RADIUS , fill='red')
         vy=3
     else:
         gameOver()
     
 
-def moveBOLA():
-    global PONTOS,vy
-    canvas.move(BOLA, 0,vy)
+def moveBALL():
+    global POINTS,vy
+    canvas.move(BALL, 0,vy)
     canvas.update() 
     time.sleep(DELAY)
-    if objColidido==None:
-        PONTOS+=1
-    canvas.itemconfig(TEXTO3, text = 'PONTOS: %5d ' % (PONTOS))
+    if OBJCOLLISION==None:
+        POINTS+=1
+    canvas.itemconfig(TEXT3, text = 'POINTS: %5d ' % (POINTS))
 
-def criaCenario():
-    global TIJOLOS,TIJOLO1,TIJOLO2 ,TIJOLO3,TIJOLO4,TIJOLO5,CORACAO,x2,y2
-    x2=random.uniform(0.0, LARGURA_CANVAS-LARGURA_TIJOLO)
-    y2=ALTURA_CANVAS
-    if TIJOLOS==0 :
+def createsLandscape():
+    global BRICKS,BRICK1,BRICK2 ,BRICK3,BRICK4,BRICK5,HEART,x2,y2
+    x2=random.uniform(0.0, CANVAS_WIDTH-WIDTH_BRICK)
+    y2=CANVAS_HEIGHT
+    if BRICKS==0 :
        
-        TIJOLO1=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                            fill='black',tags='tijolo')
-        TIJOLOS+=1
+        BRICK1=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                            fill='black',tags='BRICK')
+        BRICKS+=1
 
-    if TIJOLOS==1 and getY(TIJOLO1)<ALTURA_CANVAS-100  :
-        TIJOLO2=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                            fill='black',tags='tijolo')
-        TIJOLOS+=1
+    if BRICKS==1 and getY(BRICK1)<CANVAS_HEIGHT-100  :
+        BRICK2=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                            fill='black',tags='BRICK')
+        BRICKS+=1
 
-    if TIJOLOS==2 and getY(TIJOLO2)<ALTURA_CANVAS-200:
-        TIJOLO3=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                            fill='black',tags='tijolo')
-        TIJOLOS+=1
+    if BRICKS==2 and getY(BRICK2)<CANVAS_HEIGHT-200:
+        BRICK3=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                            fill='black',tags='BRICK')
+        BRICKS+=1
 
-    if TIJOLOS==3 and getY(TIJOLO3)<ALTURA_CANVAS-100  :
-        TIJOLO4=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                            fill='black',tags='tijolo')
-        TIJOLOS+=1
+    if BRICKS==3 and getY(BRICK3)<CANVAS_HEIGHT-100  :
+        BRICK4=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                            fill='black',tags='BRICK')
+        BRICKS+=1
         
-        CORACAO=canvas.create_polygon(x2, y2-ALTURA_TIJOLO-LARG_CORACAO,x2+LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO-2*LARG_CORACAO,x2+2*LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO-LARG_CORACAO,x2+LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO,fill='magenta',
-                                          outline='black',tags='tijolo') 
-    if TIJOLOS==4 and getY(TIJOLO4)<ALTURA_CANVAS-100 :
-        TIJOLO5=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                            fill='black',tags='tijolo')
+        HEART=canvas.create_polygon(x2, y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
+                                          y2-HEIGHT_BRICK-2*WIDTH_HEART,x2+2*WIDTH_HEART,
+                                          y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
+                                          y2-HEIGHT_BRICK,fill='magenta',
+                                          outline='black',tags='BRICK') 
+    if BRICKS==4 and getY(BRICK4)<CANVAS_HEIGHT-100 :
+        BRICK5=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                            fill='black',tags='BRICK')
        
-        TIJOLOS+=1
+        BRICKS+=1
         
     
 
 
-def moveTIJOLOS():
-    canvas.move('tijolo',0,vt)
+def moveBRICKS():
+    canvas.move('BRICK',0,vt)
     canvas.update()
     time.sleep(DELAY)
 
 
-def moveuMouse(e):
+def movedMouse(e):
     global x1
     if not gameOver() and not gameWon():
     
-        canvas.move(BOLA, e.x-RAIO_BOLA - x1 ,0 ) #move a bola na horizontal
-        x1=e.x-RAIO_BOLA    
-        if getX(BOLA) <= 2*RAIO_BOLA:
-            canvas.move(BOLA, 2*RAIO_BOLA - getX(BOLA),0)
+        canvas.move(BALL, e.x-BALL_RADIUS - x1 ,0 ) #horizontal ball move
+        x1=e.x-BALL_RADIUS    
+        if getX(BALL) <= 2*BALL_RADIUS:
+            canvas.move(BALL, 2*BALL_RADIUS - getX(BALL),0)
             x1=0
-        if getX(BOLA)>=LARGURA_CANVAS:
-            canvas.move(BOLA,LARGURA_CANVAS - getX(BOLA),0)
-            x1=LARGURA_CANVAS-2*RAIO_BOLA
+        if getX(BALL)>=CANVAS_WIDTH:
+            canvas.move(BALL,CANVAS_WIDTH - getX(BALL),0)
+            x1=CANVAS_WIDTH-2*BALL_RADIUS
 
-def clicouMouse(e): 
+def clickedMouse(e): 
     if not gameOver() and not gameWon():
-        canvas.delete(TEXTO1)
-        IniciouRodada()
+        canvas.delete(TEXT1)
+        beginsTurn()
 
 
 
     
-def verificaObjColidido():
-    global vy,vt,objColidido
-    objColidido = detectaColisoes()
-    if objColidido != None:
-        if objColidido !=CORACAO and objColidido!= TEXTO3 and objColidido!=TEXTO2 and objColidido!=ARMADILHA:
-            if getY(BOLA) > getY(objColidido)-ALTURA_TIJOLO:
-                dif = getY(BOLA)- getY(objColidido) + ALTURA_TIJOLO
-                canvas.move(BOLA, 0, -dif)
+def verifiesOBJCOLLISION():
+    global vy,vt,OBJCOLLISION
+    OBJCOLLISION = detectsCollisions()
+    if OBJCOLLISION != None:
+        if OBJCOLLISION !=HEART and OBJCOLLISION!= TEXT3 and OBJCOLLISION!=TEXT2 and OBJCOLLISION!=TRAP:
+            if getY(BALL) > getY(OBJCOLLISION)-HEIGHT_BRICK:
+                dif = getY(BALL)- getY(OBJCOLLISION) + HEIGHT_BRICK
+                canvas.move(BALL, 0, -dif)
             vy=vt
           
     else:
@@ -189,124 +189,124 @@ def verificaObjColidido():
 
 
 
-def detectaColisoes():
-    global lista,TENTATIVAS
-    [xb0, yb0, xb1, yb1] = canvas.coords(BOLA)
-    lista = canvas.find_overlapping(xb0, yb0, xb1, yb1)
-    for obj in lista:
-        if obj ==CORACAO:
-            tocaSom(tocouCORACAO)   
-            TENTATIVAS+=1
-            canvas.delete(CORACAO)
-            canvas.itemconfig(TEXTO2, text = 'TENTATIVAS: ' + str(TENTATIVAS))
-    if len(lista)>1:
-        if lista[0] != BOLA  :
-            return lista [0]
-        elif lista[1] != BOLA :
-            return lista[1]
+def detectsCollisions():
+    global list,LIFES
+    [xb0, yb0, xb1, yb1] = canvas.coords(BALL)
+    list = canvas.find_overlapping(xb0, yb0, xb1, yb1)
+    for obj in list:
+        if obj ==HEART:
+            playsSound(touchHEART)   
+            LIFES+=1
+            canvas.delete(HEART)
+            canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
+    if len(list)>1:
+        if list[0] != BALL  :
+            return list [0]
+        elif list[1] != BALL :
+            return list[1]
         
 
 
 
 def gameWon():
-    if PONTOS>=1000:
-        canvas.delete(BOLA)    
-        canvas.create_text(LARGURA_CANVAS/2, ALTURA_CANVAS/2,
+    if POINTS>=1000:
+        canvas.delete(BALL)    
+        canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2,
                                            font=('Comic Sans', 36),
-                                           text = 'Parabéns,',fill='pink')
+                                           text = 'Congrats,',fill='pink')
 
-        canvas.create_text(LARGURA_CANVAS/2, ALTURA_CANVAS/2+ 100,
+        canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2+ 100,
                                            font=('Comic Sans', 36),
-                                           text = 'Você é bom!!',fill='pink')
+                                           text = 'You`re awesome!!',fill='pink')
 
-        canvas.create_text(LARGURA_CANVAS/2,ALTURA_CANVAS/2 +200,
-                                           text = 'em breve níveis mais difíceis..',
+        canvas.create_text(CANVAS_WIDTH/2,CANVAS_HEIGHT/2 +200,
+                                           text = 'getting more difficult..',
                                            font=('Comic Sans', 14))
-        tocaSom(ganhouJogo)
+        playsSound(wonGame)
         return True
 
 
 def gameOver():
-    if TENTATIVAS==0:
-        canvas.delete('tijolo')
-        canvas.delete(BOLA)
-        canvas.create_text(LARGURA_CANVAS/2, ALTURA_CANVAS/2,
+    if LIFES==0:
+        canvas.delete('BRICK')
+        canvas.delete(BALL)
+        canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2,
                                        font=('Courrier', 36),
                                        text = 'GAME OVER')
-        tocaSom(perdeuJogo)
+        playsSound(lostGame)
         return True
 
-def tocaSom(file):
+def playsSound(file):
     PlaySound(file, SND_FILENAME|SND_ASYNC)
 
-def administraCenario():
-    global TIJOLO1,TIJOLO2,TIJOLO3,TIJOLO4,TIJOLO5,x2,CORACAO,ARMADILHA
-    x2=random.uniform(0.0, LARGURA_CANVAS-LARGURA_TIJOLO)
-    if TIJOLOS<5:
-            criaCenario()
+def managesLandscape():
+    global BRICK1,BRICK2,BRICK3,BRICK4,BRICK5,x2,HEART,TRAP
+    x2=random.uniform(0.0, CANVAS_WIDTH-WIDTH_BRICK)
+    if BRICKS<5:
+            createsLandscape()
     
         
-    elif TIJOLO1!=None and getY(TIJOLO1)<0:
-        canvas.delete(TIJOLO1)
-        TIJOLO1=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='black',tags='tijolo')
+    elif BRICK1!=None and getY(BRICK1)<0:
+        canvas.delete(BRICK1)
+        BRICK1=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='black',tags='BRICK')
         
      
-    elif TIJOLO2!=None and getY(TIJOLO2)<0:
-        canvas.delete(TIJOLO2)
-        TIJOLO2=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='black',tags='tijolo')
+    elif BRICK2!=None and getY(BRICK2)<0:
+        canvas.delete(BRICK2)
+        BRICK2=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='black',tags='BRICK')
         
-    elif TIJOLO3!=None and getY(TIJOLO3)<0:
-        canvas.delete(TIJOLO3)
+    elif BRICK3!=None and getY(BRICK3)<0:
+        canvas.delete(BRICK3)
         
-        TIJOLO3=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='black',tags='tijolo')
+        BRICK3=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='black',tags='BRICK')
         if random.choice([True, False])==True:
-            CORACAO=canvas.create_polygon(x2, y2-ALTURA_TIJOLO-LARG_CORACAO,x2+LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO-2*LARG_CORACAO,x2+2*LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO-LARG_CORACAO,x2+LARG_CORACAO,
-                                          y2-ALTURA_TIJOLO,fill='magenta',
-                                          outline='black',tags='tijolo')
-    elif TIJOLO4!=None and getY(TIJOLO4)<0:
-        canvas.delete(TIJOLO4)
-        TIJOLO4=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='black',tags='tijolo')
+            HEART=canvas.create_polygon(x2, y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
+                                          y2-HEIGHT_BRICK-2*WIDTH_HEART,x2+2*WIDTH_HEART,
+                                          y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
+                                          y2-HEIGHT_BRICK,fill='magenta',
+                                          outline='black',tags='BRICK')
+    elif BRICK4!=None and getY(BRICK4)<0:
+        canvas.delete(BRICK4)
+        BRICK4=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='black',tags='BRICK')
    
         
-    elif TIJOLO5!=None and getY(TIJOLO5)<0:
-        canvas.delete(TIJOLO5)
+    elif BRICK5!=None and getY(BRICK5)<0:
+        canvas.delete(BRICK5)
         
-        TIJOLO5=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='black',tags='tijolo')
+        BRICK5=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='black',tags='BRICK')
         
         
         
 
-    if TIJOLO4!=None and ARMADILHA==None:
-        ARMADILHA=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='red',outline='magenta',tags='tijolo')
-    elif ARMADILHA!=None and getY(ARMADILHA)<0:
-            canvas.delete(ARMADILHA)
-            ARMADILHA=canvas.create_rectangle(x2,y2,x2+LARGURA_TIJOLO,y2-ALTURA_TIJOLO,
-                        fill='red',outline='magenta',tags='tijolo')
+    if BRICK4!=None and TRAP==None:
+        TRAP=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='red',outline='magenta',tags='BRICK')
+    elif TRAP!=None and getY(TRAP)<0:
+            canvas.delete(TRAP)
+            TRAP=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
+                        fill='red',outline='magenta',tags='BRICK')
 
-def ColidiuArmadilha():
-    global TENTATIVAS
-    for obj in lista:
-        if obj ==ARMADILHA:
-            tocaSom(tocouARMADILHA)   
+def CollisionTRAP():
+    global LIFES
+    for obj in list:
+        if obj ==TRAP:
+            playsSound(touchTRAP)   
             return True
 
         
 
-canvas = Canvas(width=LARGURA_CANVAS, height=ALTURA_CANVAS,
+canvas = Canvas(width=CANVAS_WIDTH, height=CANVAS_HEIGHT,
 background='cyan')
 canvas.pack(fill=BOTH,expand=YES)
 
 setup()
 
-canvas.bind("<Motion>", moveuMouse)
-canvas.bind("<ButtonPress>", clicouMouse)
+canvas.bind("<Motion>", movedMouse)
+canvas.bind("<ButtonPress>", clickedMouse)
 
 mainloop()
