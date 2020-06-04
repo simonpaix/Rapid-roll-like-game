@@ -72,7 +72,7 @@ def getY(object):
 def beginsTurn():
     global BALL, LIFES,vy,HEART
     while 0<getY(BALL)<CANVAS_HEIGHT+2*BALL_RADIUS:
-        HEART=0
+        # HEART=0
         moveBALL()
         verifiesOBJCOLLISION()
         managesLandscape()
@@ -116,33 +116,40 @@ def createsLandscape():
                             fill='black',tags='BRICK')
         BRICKS+=1
 
+
     if BRICKS==1 and getY(BRICK1)<CANVAS_HEIGHT-100  :
         BRICK2=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
                             fill='black',tags='BRICK')
         BRICKS+=1
+
+
 
     if BRICKS==2 and getY(BRICK2)<CANVAS_HEIGHT-200:
         BRICK3=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
                             fill='black',tags='BRICK')
         BRICKS+=1
 
+ 
+
     if BRICKS==3 and getY(BRICK3)<CANVAS_HEIGHT-100  :
         BRICK4=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
                             fill='black',tags='BRICK')
         BRICKS+=1
+
         
         HEART=canvas.create_polygon(x2, y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
                                           y2-HEIGHT_BRICK-2*WIDTH_HEART,x2+2*WIDTH_HEART,
                                           y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
                                           y2-HEIGHT_BRICK,fill='magenta',
                                           outline='black',tags='BRICK') 
+
+
     if BRICKS==4 and getY(BRICK4)<CANVAS_HEIGHT-100 :
         BRICK5=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
                             fill='black',tags='BRICK')
        
         BRICKS+=1
-        
-    
+
 
 
 def moveBRICKS():
@@ -173,14 +180,25 @@ def clickedMouse(e):
 
     
 def verifiesOBJCOLLISION():
-    global vy,vt,OBJCOLLISION
+    global vy,vt,OBJCOLLISION,LIFES,HEART
     OBJCOLLISION = detectsCollisions()
-    if OBJCOLLISION != None:
-        if OBJCOLLISION !=HEART and OBJCOLLISION!= TEXT3 and OBJCOLLISION!=TEXT2 and OBJCOLLISION!=TRAP:
-            if getY(BALL) > getY(OBJCOLLISION)-HEIGHT_BRICK:
-                dif = getY(BALL)- getY(OBJCOLLISION) + HEIGHT_BRICK
-                canvas.move(BALL, 0, -dif)
-            vy=vt
+    
+
+    if OBJCOLLISION != None:  
+
+ 
+      if OBJCOLLISION !=HEART and OBJCOLLISION!= TEXT3 and OBJCOLLISION!=TEXT2 and OBJCOLLISION!=TRAP:
+
+        if getY(BALL) > getY(OBJCOLLISION)-HEIGHT_BRICK:
+          dif = getY(BALL)- getY(OBJCOLLISION) + HEIGHT_BRICK
+          canvas.move(BALL, 0, -dif)
+        vy=vt
+
+      if OBJCOLLISION == HEART:
+        # playsSound(touchHEART)   
+        LIFES+=1
+        canvas.delete(HEART)
+        canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
           
     else:
         vy=3
@@ -193,31 +211,28 @@ def detectsCollisions():
     global list,LIFES
     [xb0, yb0, xb1, yb1] = canvas.coords(BALL)
     list = canvas.find_overlapping(xb0, yb0, xb1, yb1)
+
+
     for obj in list:
-        if obj ==HEART:
-           # playsSound(touchHEART)   
-            LIFES+=1
-            canvas.delete(HEART)
-            canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
-    if len(list)>1:
-        if list[0] != BALL  :
-            return list [0]
-        elif list[1] != BALL :
-            return list[1]
-        
+      if len(list)>1:
+          if list[0] != BALL  :
+              return list [0]
+          elif list[1] != BALL :
+              return list[1]
+          
 
 
 
 def gameWon():
-    if POINTS>=1000:
+    if POINTS>=1200:
         canvas.delete(BALL)    
         canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2,
-                                           font=('Comic Sans', 36),
-                                           text = 'Congrats,',fill='pink')
+                                           font=('Comic Sans', 26),
+                                           text = 'Congrats,',fill='blue')
 
         canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2+ 100,
-                                           font=('Comic Sans', 36),
-                                           text = 'You`re awesome!!',fill='pink')
+                                           font=('Comic Sans', 26),
+                                           text = 'You`re awesome!!',fill='blue')
 
         canvas.create_text(CANVAS_WIDTH/2,CANVAS_HEIGHT/2 +200,
                                            text = 'getting more difficult..',
@@ -268,6 +283,7 @@ def managesLandscape():
                                           y2-HEIGHT_BRICK-WIDTH_HEART,x2+WIDTH_HEART,
                                           y2-HEIGHT_BRICK,fill='magenta',
                                           outline='black',tags='BRICK')
+
     elif BRICK4!=None and getY(BRICK4)<0:
         canvas.delete(BRICK4)
         BRICK4=canvas.create_rectangle(x2,y2,x2+WIDTH_BRICK,y2-HEIGHT_BRICK,
