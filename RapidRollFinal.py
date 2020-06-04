@@ -1,7 +1,7 @@
-# -*- coding: cp1252 -*-
 
-from winsound import PlaySound, SND_FILENAME, SND_ASYNC
-from Tkinter import *
+#from winsound import PlaySound, SND_FILENAME, SND_ASYNC
+
+from tkinter import *
 import random
 import time
 
@@ -49,8 +49,8 @@ def setup():
                        CANVAS_WIDTH/2+BALL_RADIUS, 2*BALL_RADIUS, fill='red')
     #instructions:
     TEXT1= canvas.create_text(CANVAS_WIDTH/2 , CANVAS_HEIGHT/2 +2*BALL_RADIUS+ 20,
-                                       font=('Times New Roman', 36),
-                                       text = 'Clique para começar')
+                                       font=('Times New Roman', 26),
+                                       text = 'Click to start')
 
      #remaining lifes:
     TEXT2= canvas.create_text( 10, 10,text=  'LIFES: ' + str(LIFES), anchor=NW, font=('Times New Roman', 14),fill='blue')
@@ -85,7 +85,7 @@ def beginsTurn():
 
     LIFES-=1
     canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
-    playsSound(BALLout)
+    #playsSound(BALLout)
 
     
     if LIFES!=0:
@@ -195,7 +195,7 @@ def detectsCollisions():
     list = canvas.find_overlapping(xb0, yb0, xb1, yb1)
     for obj in list:
         if obj ==HEART:
-            playsSound(touchHEART)   
+           # playsSound(touchHEART)   
             LIFES+=1
             canvas.delete(HEART)
             canvas.itemconfig(TEXT2, text = 'LIFES: ' + str(LIFES))
@@ -222,7 +222,7 @@ def gameWon():
         canvas.create_text(CANVAS_WIDTH/2,CANVAS_HEIGHT/2 +200,
                                            text = 'getting more difficult..',
                                            font=('Comic Sans', 14))
-        playsSound(wonGame)
+        #playsSound(wonGame)
         return True
 
 
@@ -233,7 +233,7 @@ def gameOver():
         canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2,
                                        font=('Courrier', 36),
                                        text = 'GAME OVER')
-        playsSound(lostGame)
+        #playsSound(lostGame)
         return True
 
 def playsSound(file):
@@ -295,7 +295,7 @@ def CollisionTRAP():
     global LIFES
     for obj in list:
         if obj ==TRAP:
-            playsSound(touchTRAP)   
+            #playsSound(touchTRAP)   
             return True
 
         
